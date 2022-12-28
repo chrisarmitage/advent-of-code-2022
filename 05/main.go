@@ -7,8 +7,9 @@ import (
 )
 
 const SAMPLE_TARGET_P1 = "CMZ"
+const SAMPLE_TARGET_P2 = "MCD"
 
-const STACKS = 9
+const STACKS = 3
 
 type Move struct {
 	Qty  int
@@ -17,10 +18,13 @@ type Move struct {
 }
 
 func main() {
-	scanner := makeScanner("input.txt")
+	scanner := makeScanner("sample.txt")
 	resultP1 := calculatePart1(scanner)
+	scanner = makeScanner("sample.txt")
+	resultP2 := calculatePart2(scanner)
 
 	fmt.Printf("Part 1: Top containers = %s\n", resultP1)
+	fmt.Printf("Part 2: Top containers = %s\n", resultP2)
 
 }
 
@@ -42,24 +46,24 @@ func calculatePart1(scanner *bufio.Scanner) string {
 			}
 			for col := 0; col < STACKS; col++ {
 				crateLetter := string(line[(col*4)+1])
-				fmt.Printf("%s ", crateLetter)
+				// fmt.Printf("%s ", crateLetter)
 
 				if crateLetter != " " {
 					stacks[col] = append([]string{crateLetter}, stacks[col]...)
 				}
 			}
-			fmt.Println()
+			// fmt.Println()
 		}
 
 		if mode == "skip" {
 			if line != "" {
 				mode = "move"
-				fmt.Printf("Init : %v\n", stacks)
+				// fmt.Printf("Init : %v\n", stacks)
 			}
 		}
 
 		if mode == "move" {
-			fmt.Printf("Action: %s\n", line)
+			// fmt.Printf("Action: %s\n", line)
 
 			var m Move
 
@@ -80,12 +84,87 @@ func calculatePart1(scanner *bufio.Scanner) string {
 				// Push
 				stacks[m.To] = append(stacks[m.To], crateToMove)
 
-				fmt.Printf("Stacks: %v\n", stacks)
+				// fmt.Printf("Stacks: %v\n", stacks)
 			}
 		}
 	}
 
-	fmt.Printf("Final Stacks: %v\n", stacks)
+	// fmt.Printf("Final Stacks: %v\n", stacks)
+
+	result := ""
+	for col := 0; col < STACKS; col++ {
+		fromStackSize := len(stacks[col]) - 1
+		topCrate := stacks[col][fromStackSize]
+		result += topCrate
+	}
+
+	return result
+}
+
+func calculatePart2(scanner *bufio.Scanner) string {
+	stacks := make([][]string, STACKS)
+
+	for col := 0; col < STACKS; col++ {
+		stacks[col] = []string{}
+	}
+
+	mode := "setup"
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		if mode == "setup" {
+			if string(line[1]) == "1" {
+				mode = "skip"
+				continue
+			}
+			for col := 0; col < STACKS; col++ {
+				crateLetter := string(line[(col*4)+1])
+				// fmt.Printf("%s ", crateLetter)
+
+				if crateLetter != " " {
+					stacks[col] = append([]string{crateLetter}, stacks[col]...)
+				}
+			}
+			// fmt.Println()
+		}
+
+		if mode == "skip" {
+			if line != "" {
+				mode = "move"
+				// fmt.Printf("Init : %v\n", stacks)
+			}
+		}
+
+		if mode == "move" {
+			// fmt.Printf("Action: %s\n", line)
+
+			var m Move
+
+			fmt.Sscanf(
+				line, "move %d from %d to %d",
+				&m.Qty, &m.From, &m.To)
+
+			m.From = m.From - 1
+			m.To = m.To - 1
+
+			//for n := 1; n <= m.Qty; n++ {
+			fromStackSize := len(stacks[m.From])
+			// fmt.Printf("[fromStackSize, m.Qty] [%d, %d]\n", fromStackSize, m.Qty)
+			cratesToMove := stacks[m.From][fromStackSize-m.Qty : fromStackSize]
+
+			// fmt.Printf("  Crates to move: %v\n", cratesToMove)
+			// Pop
+			stacks[m.From] = stacks[m.From][: fromStackSize-m.Qty : fromStackSize]
+
+			// Push
+			stacks[m.To] = append(stacks[m.To], cratesToMove...)
+
+			// fmt.Printf("Stacks: %v\n", stacks)
+			//}
+		}
+	}
+
+	// fmt.Printf("Final Stacks: %v\n", stacks)
 
 	result := ""
 	for col := 0; col < STACKS; col++ {
