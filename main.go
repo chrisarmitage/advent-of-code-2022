@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"advent-2022/day01"
+	"advent-2022/day07"
 
 	"github.com/urfave/cli"
 )
@@ -68,6 +69,8 @@ func calculateChallange(day int, sample bool) (string, error) {
 	switch day {
 	case 1:
 		return day01.Run(sample)
+	case 7:
+		return day07.Run(sample)
 	default:
 		return "", fmt.Errorf("day %02d not available", day)
 	}
